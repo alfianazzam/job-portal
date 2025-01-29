@@ -138,7 +138,7 @@ const ApplicationTile = (props) => {
           </Grid>
           <Grid item>Posted By: {application.recruiter.name}</Grid>
           <Grid item>Role : {application.job.jobType}</Grid>
-          <Grid item>Salary : &#8377; {application.job.salary} per month</Grid>
+          <Grid item>Salary : Rp {new Intl.NumberFormat('id-ID').format(application.job.salary)} per month</Grid>
           <Grid item>
             Duration :{" "}
             {application.job.duration !== 0

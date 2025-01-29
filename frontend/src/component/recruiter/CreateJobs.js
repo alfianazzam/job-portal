@@ -1,9 +1,8 @@
-import { useContext, useEffect, useState } from "react";
+import { useContext, useState } from "react";
 import {
   Button,
   Grid,
   Typography,
-  Modal,
   Paper,
   makeStyles,
   TextField,
@@ -46,6 +45,12 @@ const CreateJobs = (props) => {
     salary: 0,
   });
 
+  const formatCurrency = (value) => {
+    const number = value.replace(/\D/g, ""); // Remove all non-numeric characters
+    const formattedNumber = Number(number).toLocaleString("id-ID");
+    return formattedNumber ? `Rp ${formattedNumber}` : "";
+  };
+
   const handleInput = (key, value) => {
     setJobDetails({
       ...jobDetails,
@@ -53,10 +58,24 @@ const CreateJobs = (props) => {
     });
   };
 
+  const handleSalaryChange = (event) => {
+    const formattedSalary = formatCurrency(event.target.value);
+    setJobDetails({
+      ...jobDetails,
+      salary: formattedSalary,
+    });
+  };
+
   const handleUpdate = () => {
-    console.log(jobDetails);
+    const salaryNumber = Number(jobDetails.salary.replace(/[^\d]/g, "")); // Remove "Rp" and commas
+    const updatedJobDetails = {
+      ...jobDetails,
+      salary: salaryNumber,
+    };
+
+    console.log(updatedJobDetails);
     axios
-      .post(apiList.jobs, jobDetails, {
+      .post(apiList.jobs, updatedJobDetails, {
         headers: {
           Authorization: `Bearer ${localStorage.getItem("token")}`,
         },
@@ -194,13 +213,9 @@ const CreateJobs = (props) => {
                 <Grid item>
                   <TextField
                     label="Salary"
-                    type="number"
-                    variant="outlined"
                     value={jobDetails.salary}
-                    onChange={(event) => {
-                      handleInput("salary", event.target.value);
-                    }}
-                    InputProps={{ inputProps: { min: 0 } }}
+                    onChange={handleSalaryChange}
+                    variant="outlined"
                     fullWidth
                   />
                 </Grid>
