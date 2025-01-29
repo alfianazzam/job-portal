@@ -18,11 +18,11 @@ mongoose
   .then(() => console.log("✅ Connected to MongoDB Atlas"))
   .catch((err) => console.error("❌ MongoDB Connection Error:", err));
 
-// Initialising directories
-const directories = ["./public", "./public/resume", "./public/profile"];
-directories.forEach((dir) => {
-  if (!fs.existsSync(dir)) fs.mkdirSync(dir);
-});
+// // Initialising directories
+// const directories = ["./public", "./public/resume", "./public/profile"];
+// directories.forEach((dir) => {
+//   if (!fs.existsSync(dir)) fs.mkdirSync(dir);
+// });
 
 const app = express();
 app.use(bodyParser.json());
