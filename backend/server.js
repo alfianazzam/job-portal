@@ -7,19 +7,24 @@ const fs = require("fs");
 require("dotenv").config();
 
 // Debugging
-console.log("🛠️ MONGO_URI:", process.env.MONGO_URI);
+// Tambahkan di awal kode untuk debug
+console.log('🔍 Current MONGO_URI:', process.env.MONGO_URI?.replace(/:[^@]+@/, ':*****@'));
 
 // MongoDB Connection
-mongoose
-  .connect(process.env.MONGO_URI, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-  })
-  .then(() => {
-    console.log("✅ Connected to MongoDB Atlas");
-    console.log("✨ You are Connected");
-  })
-  .catch((err) => console.error("❌ MongoDB Connection Error:", err));
+const connectWithRetry = async () => {
+  try {
+    await mongoose.connect(process.env.MONGO_URI, {
+      serverSelectionTimeoutMS: 5000,
+      socketTimeoutMS: 45000
+    });
+    console.log('✅ Connected to MongoDB Atlas');
+  } catch (err) {
+    console.error('❌ MongoDB Connection Error:', err);
+    setTimeout(connectWithRetry, 5000);
+  }
+};
+
+connectWithRetry();
 
 const app = express();
 app.use(bodyParser.json());
@@ -29,21 +34,30 @@ app.use(express.json());
 app.use(passportConfig.initialize());
 
 // Added connection check endpoint
-app.get("/", (req, res) => {
-  if (mongoose.connection.readyState === 1) {
+app.get("/", async (req, res) => {
+  try {
+    await mongoose.connection.db.admin().ping();
     res.status(200).json({
       success: true,
-      message: "🚀 You are Connected to MongoDB Atlas!",
-      database: mongoose.connection.name,
-      status: mongoose.connection.readyState === 1 ? "Connected" : "Disconnected"
+      message: "🚀 Connected to MongoDB Atlas!",
+      version: await mongoose.connection.db.admin().serverInfo(),
+      status: "Connected"
     });
-  } else {
+  } catch (err) {
     res.status(503).json({
       success: false,
-      message: "❌ Database Connection Lost",
+      message: `❌ Database Connection Error: ${err.message}`,
       status: "Disconnected"
     });
   }
+});
+
+mongoose.connection.on('disconnected', () => {
+  console.log('⚠️ MongoDB disconnected!');
+});
+
+mongoose.connection.on('reconnected', () => {
+  console.log('♻️ MongoDB reconnected!');
 });
 
 // Routing
