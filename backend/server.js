@@ -15,14 +15,11 @@ mongoose
     useNewUrlParser: true,
     useUnifiedTopology: true,
   })
-  .then(() => console.log("✅ Connected to MongoDB Atlas"))
+  .then(() => {
+    console.log("✅ Connected to MongoDB Atlas");
+    console.log("✨ You are Connected");
+  })
   .catch((err) => console.error("❌ MongoDB Connection Error:", err));
-
-// // Initialising directories
-// const directories = ["./public", "./public/resume", "./public/profile"];
-// directories.forEach((dir) => {
-//   if (!fs.existsSync(dir)) fs.mkdirSync(dir);
-// });
 
 const app = express();
 app.use(bodyParser.json());
@@ -31,11 +28,29 @@ app.use(cors());
 app.use(express.json());
 app.use(passportConfig.initialize());
 
+// Added connection check endpoint
+app.get("/", (req, res) => {
+  if (mongoose.connection.readyState === 1) {
+    res.status(200).json({
+      success: true,
+      message: "🚀 You are Connected to MongoDB Atlas!",
+      database: mongoose.connection.name,
+      status: mongoose.connection.readyState === 1 ? "Connected" : "Disconnected"
+    });
+  } else {
+    res.status(503).json({
+      success: false,
+      message: "❌ Database Connection Lost",
+      status: "Disconnected"
+    });
+  }
+});
+
 // Routing
 app.use("/auth", require("./routes/authRoutes"));
 app.use("/api", require("./routes/apiRoutes"));
 app.use("/upload", require("./routes/uploadRoutes"));
 app.use("/host", require("./routes/downloadRoutes"));
 
-// Vercel membutuhkan export handler
+// Vercel handler export
 module.exports = app;
