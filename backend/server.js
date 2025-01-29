@@ -4,10 +4,12 @@ const mongoose = require("mongoose");
 const passportConfig = require("./lib/passportConfig");
 const cors = require("cors");
 const fs = require("fs");
-require("dotenv").config(); // Pastikan dotenv ada di paling atas
-console.log("🛠️ MONGO_URI:", process.env.MONGO_URI); // Debugging
+require("dotenv").config();
 
-// MongoDB Connection (Hanya Satu Kali)
+// Debugging
+console.log("🛠️ MONGO_URI:", process.env.MONGO_URI);
+
+// MongoDB Connection
 mongoose
   .connect(process.env.MONGO_URI, {
     useNewUrlParser: true,
@@ -16,15 +18,6 @@ mongoose
   .then(() => console.log("✅ Connected to MongoDB Atlas"))
   .catch((err) => console.error("❌ MongoDB Connection Error:", err));
 
-// Cek apakah koneksi berhasil
-mongoose.connection.on("connected", () => {
-  console.log("🔗 MongoDB Connection Established!");
-});
-
-mongoose.connection.on("error", (err) => {
-  console.error("⚠️ MongoDB Connection Error:", err);
-});
-
 // Initialising directories
 const directories = ["./public", "./public/resume", "./public/profile"];
 directories.forEach((dir) => {
@@ -32,8 +25,6 @@ directories.forEach((dir) => {
 });
 
 const app = express();
-const port = process.env.PORT || 4444;
-
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(cors());
@@ -46,6 +37,5 @@ app.use("/api", require("./routes/apiRoutes"));
 app.use("/upload", require("./routes/uploadRoutes"));
 app.use("/host", require("./routes/downloadRoutes"));
 
-app.listen(port, () => {
-  console.log(`🚀 Server started on port ${port}!`);
-});
+// Vercel membutuhkan export handler
+module.exports = app;
