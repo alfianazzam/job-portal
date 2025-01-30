@@ -29,12 +29,11 @@ const connectWithRetry = async () => {
     await mongoose.connect(process.env.MONGO_URI, {
       useNewUrlParser: true,
       useUnifiedTopology: true,
-      serverSelectionTimeoutMS: 5000, // Waktu tunggu pemilihan server
-      socketTimeoutMS: 45000, // Waktu tunggu koneksi socket
-      connectTimeoutMS: 10000, // Waktu tunggu koneksi awal
+      serverSelectionTimeoutMS: 5000,
+      socketTimeoutMS: 45000,
+      connectTimeoutMS: 10000,
     });
     console.log("✅ Connected to MongoDB Atlas");
-    console.log("💡 Database Name:", mongoose.connection.name);
   } catch (err) {
     console.error("❌ MongoDB Connection Error:", err.message);
     console.log("🔄 Retrying connection in 5 seconds...");
@@ -44,7 +43,11 @@ const connectWithRetry = async () => {
 
 connectWithRetry();
 
-// 📡 Event listeners untuk MongoDB
+// Event Listener untuk koneksi MongoDB
+mongoose.connection.on("connected", () => {
+  console.log("🎉 MongoDB is connected!");
+});
+
 mongoose.connection.on("disconnected", () => {
   console.log("⚠️ MongoDB connection lost!");
 });
@@ -53,9 +56,16 @@ mongoose.connection.on("reconnected", () => {
   console.log("♻️ MongoDB reconnected!");
 });
 
+
 // ✅ Health check endpoint dengan database ping
 app.get("/", async (req, res) => {
   try {
+    // Pastikan koneksi MongoDB dalam status "connected" (1)
+    if (mongoose.connection.readyState !== 1) {
+      throw new Error("Database not connected");
+    }
+
+    // Test koneksi database dengan ping
     await mongoose.connection.db.admin().ping();
 
     res.status(200).json({
@@ -76,6 +86,7 @@ app.get("/", async (req, res) => {
     });
   }
 });
+
 
 // 📌 Routing
 app.use("/auth", require("./routes/authRoutes"));
