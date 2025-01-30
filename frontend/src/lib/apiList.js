@@ -1,4 +1,4 @@
-export const server = "http://localhost:6969";
+export const server = "https://job-portal-fawn-zeta.vercel.app";
 
 const apiList = {
   login: `${server}/auth/login`,
