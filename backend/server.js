@@ -34,19 +34,19 @@ console.log("🔧 Environment Variables:", {
 // 🚀 MongoDB Connection dengan retry logic
 const connectWithRetry = async () => {
   try {
-    console.log("🔄 Attempting to connect to MongoDB...");
     await mongoose.connect(process.env.MONGO_URI, {
-      serverSelectionTimeoutMS: 5000,
-      socketTimeoutMS: 45000,
-      connectTimeoutMS: 10000,
+      serverSelectionTimeoutMS: 10000,  // Increase timeout
+      socketTimeoutMS: 60000,           // Increase socket timeout
+      connectTimeoutMS: 20000,          // Increase connection timeout
     });
     console.log("✅ Connected to MongoDB Atlas");
   } catch (err) {
     console.error("❌ MongoDB Connection Error:", err.message);
-    console.log("🔄 Retrying connection in 5 seconds...");
-    setTimeout(connectWithRetry, 5000);
+    console.log("🔄 Retrying connection in 10 seconds..."); // Increased delay
+    setTimeout(connectWithRetry, 10000); // Retry every 10 seconds
   }
 };
+
 
 connectWithRetry();
 
@@ -66,32 +66,24 @@ mongoose.connection.on("reconnected", () => {
 // ✅ Health check endpoint dengan database ping
 app.get("/", async (req, res) => {
   try {
-    // Pastikan koneksi MongoDB dalam status "connected" (1)
+    // Check MongoDB connection state before pinging
     if (mongoose.connection.readyState !== 1) {
       throw new Error("Database not connected");
     }
-
-    // Test koneksi database dengan ping
+    // Test connection with ping and retry if necessary
     await mongoose.connection.db.admin().ping();
-
     res.status(200).json({
       success: true,
       message: "🚀 Server is fully operational!",
-      database: {
-        name: mongoose.connection.name,
-        status: "Connected",
-        version: await mongoose.connection.db.admin().serverInfo().version,
-      },
-      environment: process.env.NODE_ENV || "development",
     });
   } catch (err) {
     res.status(503).json({
       success: false,
       message: `❌ Database connection error: ${err.message}`,
-      status: "Disconnected",
     });
   }
 });
+
 
 // 📌 Routing
 app.use("/auth", require("./routes/authRoutes"));
