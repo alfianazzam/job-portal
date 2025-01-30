@@ -33,8 +33,6 @@ console.log("🔧 Environment Variables:", {
 const connectWithRetry = async () => {
   try {
     await mongoose.connect(process.env.MONGO_URI, {
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
       serverSelectionTimeoutMS: 5000,
       socketTimeoutMS: 45000,
       connectTimeoutMS: 10000,
@@ -61,7 +59,6 @@ mongoose.connection.on("disconnected", () => {
 mongoose.connection.on("reconnected", () => {
   console.log("♻️ MongoDB reconnected!");
 });
-
 
 // ✅ Health check endpoint dengan database ping
 app.get("/", async (req, res) => {
@@ -92,7 +89,6 @@ app.get("/", async (req, res) => {
     });
   }
 });
-
 
 // 📌 Routing
 app.use("/auth", require("./routes/authRoutes"));
