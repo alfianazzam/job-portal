@@ -13,10 +13,12 @@ app.use(express.json());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 const corsOptions = {
-  origin: "http://localhost:3000", // Sesuaikan dengan URL frontend Anda
-  methods: ["GET", "POST", "PUT", "DELETE"], // Sesuaikan dengan metode yang digunakan
-  allowedHeaders: ["Content-Type", "Authorization"], // Menambahkan header Authorization untuk mengirimkan token
+  origin: "*", // Allow all domains to access your server
+  methods: ["GET", "POST", "PUT", "DELETE"], // Methods used by the server
+  allowedHeaders: ["Content-Type", "Authorization"], // Headers allowed in the request
 };
+
+app.use(cors(corsOptions));
 
 app.use(cors(corsOptions));
 app.use(passportConfig.initialize());
