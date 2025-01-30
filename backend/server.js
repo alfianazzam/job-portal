@@ -26,7 +26,7 @@ app.use(passportConfig.initialize());
 // 🛠️ Debugging environment variables (masked)
 console.log("🔧 Environment Variables:", {
   MONGO_URI: process.env.MONGO_URI
-    ? process.env.MONGO_URI.replace(/:[^@]+@/, ":*****@")
+    ? process.env.MONGO_URI
     : "Not Found",
   NODE_ENV: process.env.NODE_ENV || "development",
 });
@@ -34,6 +34,7 @@ console.log("🔧 Environment Variables:", {
 // 🚀 MongoDB Connection dengan retry logic
 const connectWithRetry = async () => {
   try {
+    console.log("🔄 Attempting to connect to MongoDB...");
     await mongoose.connect(process.env.MONGO_URI, {
       serverSelectionTimeoutMS: 5000,
       socketTimeoutMS: 45000,
