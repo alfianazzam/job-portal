@@ -41,7 +41,7 @@ function App() {
     message: "",
   });
   return (
-    <BrowserRouter>
+    <BrowserRouter basename="/app">
       <SetPopupContext.Provider value={setPopup}>
         <Grid container direction="column">
           <Grid item xs>
