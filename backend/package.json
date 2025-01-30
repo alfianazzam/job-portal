@@ -22,7 +22,7 @@
     "express-session": "^1.17.1",
     "fs": "^0.0.1-security",
     "jsonwebtoken": "^8.5.1",
-    "mongodb": "^2.2.12",
+    "mongodb": "^2.2.36",
     "mongoose": "^8.9.5",
     "mongoose-type-email": "^1.1.2",
     "multer": "^2.0.0-rc.2",
