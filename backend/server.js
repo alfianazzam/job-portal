@@ -1,24 +1,37 @@
+require("dotenv/config");
 const express = require("express");
-const bodyParser = require("body-parser");
 const mongoose = require("mongoose");
-const passportConfig = require("./lib/passportConfig");
 const cors = require("cors");
 const path = require("path");
-require("dotenv").config();
+const passportConfig = require("./lib/passportConfig");
+const bodyParser = require("body-parser");
 
-// Debugging dengan masking sensitive data
+const app = express();
+
+// 🛡️ Middleware
+app.use(express.json());
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: true }));
+app.use(cors());
+app.use(passportConfig.initialize());
+
+// 🛠️ Debugging environment variables (masked)
 console.log("🔧 Environment Variables:", {
   MONGO_URI: process.env.MONGO_URI
     ? process.env.MONGO_URI.replace(/:[^@]+@/, ":*****@")
     : "Not Found",
+  NODE_ENV: process.env.NODE_ENV || "development",
 });
 
-// MongoDB Connection dengan retry logic
+// 🚀 MongoDB Connection dengan retry logic
 const connectWithRetry = async () => {
   try {
     await mongoose.connect(process.env.MONGO_URI, {
-      serverSelectionTimeoutMS: 5000,
-      socketTimeoutMS: 45000,
+      useNewUrlParser: true,
+      useUnifiedTopology: true,
+      serverSelectionTimeoutMS: 5000, // Waktu tunggu pemilihan server
+      socketTimeoutMS: 45000, // Waktu tunggu koneksi socket
+      connectTimeoutMS: 10000, // Waktu tunggu koneksi awal
     });
     console.log("✅ Connected to MongoDB Atlas");
     console.log("💡 Database Name:", mongoose.connection.name);
@@ -31,7 +44,7 @@ const connectWithRetry = async () => {
 
 connectWithRetry();
 
-// Event listeners untuk koneksi MongoDB
+// 📡 Event listeners untuk MongoDB
 mongoose.connection.on("disconnected", () => {
   console.log("⚠️ MongoDB connection lost!");
 });
@@ -40,19 +53,9 @@ mongoose.connection.on("reconnected", () => {
   console.log("♻️ MongoDB reconnected!");
 });
 
-const app = express();
-
-// Middleware
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: true }));
-app.use(cors());
-app.use(express.json());
-app.use(passportConfig.initialize());
-
-// Health check endpoint dengan verifikasi aktif
+// ✅ Health check endpoint dengan database ping
 app.get("/", async (req, res) => {
   try {
-    // Test koneksi database dengan ping
     await mongoose.connection.db.admin().ping();
 
     res.status(200).json({
@@ -74,10 +77,17 @@ app.get("/", async (req, res) => {
   }
 });
 
-// Routing
+// 📌 Routing
 app.use("/auth", require("./routes/authRoutes"));
 app.use("/api", require("./routes/apiRoutes"));
 app.use("/upload", require("./routes/uploadRoutes"));
 app.use("/host", require("./routes/downloadRoutes"));
 
+// ⚠️ Global Error Handling Middleware
+app.use((err, req, res, next) => {
+  console.error("🔥 Global Error Handler:", err);
+  res.status(500).json({ success: false, message: "Internal Server Error" });
+});
+
+// 🔥 Export App (for Vercel)
 module.exports = app;
